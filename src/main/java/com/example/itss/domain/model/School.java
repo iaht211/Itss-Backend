@@ -1,10 +1,8 @@
 package com.example.itss.domain.model;
 
 import com.example.itss.util.SecurityUtils;
-import com.example.itss.util.constant.GenderEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,14 +10,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
-@Table(name = "users")
-@Entity
+@Entity(name = "schools")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class School {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
@@ -33,19 +32,8 @@ public class User {
     @NotBlank(message = "email không được để trống")
     private String email;
 
-    @Column(nullable = false)
-    @NotBlank(message = "password không được để trống")
-    private String password;
-
-    private int age;
-
-    @Enumerated(EnumType.STRING)
-    private GenderEnum gender;
-
     private String address;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshToken;
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss a", timezone = "GMT+7")
     private Instant createdAt;
 
@@ -56,9 +44,8 @@ public class User {
 
     private String updatedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id", nullable = true)
-    private School school;
+    @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> users = new ArrayList<>();
 
     @PrePersist
     public void handleBeforeCreate() {
