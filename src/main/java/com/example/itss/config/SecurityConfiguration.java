@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
@@ -25,10 +26,10 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
 
-//     private final SecurityUtils securityUtils;
-//     public SecurityConfiguration (SecurityUtils securityUtils) {
-//     this.securityUtils = securityUtils;
-//     }
+    // private final SecurityUtils securityUtils;
+    // public SecurityConfiguration (SecurityUtils securityUtils) {
+    // this.securityUtils = securityUtils;
+    // }
 
     @Value("${security.jwt.base64-secret}")
     private String jwtKey;
@@ -40,17 +41,18 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
 
-                        .requestMatchers("/", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/users/*").permitAll()
+                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
-
+                .addFilterBefore(new PublicEndpointAuthorizationFilter(), BearerTokenAuthenticationFilter.class)
                 .formLogin(f -> f.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();

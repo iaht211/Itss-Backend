@@ -117,6 +117,20 @@ public class UserService {
         return null;
     }
 
+    public User handleUpdateResfreshToken(String email, String refreshToken) {
+        User user = this.handleGetUserByEmail(email);
+        if (user != null) {
+            user.setRefreshToken(refreshToken);
+            return this.userRepository.save(user);
+        } else
+            return null;
+    }
+
+    public User getUserByRefreshTokenAndEmail(String token, String email) {
+        User user = this.userRepository.findByRefreshTokenAndEmail(token, email);
+        return user;
+    }
+
     public ResUpdateUserDto convertToUpdateUserDto(User user) {
         ResUpdateUserDto res = new ResUpdateUserDto();
         res.setId(user.getId());
