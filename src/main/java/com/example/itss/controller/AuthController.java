@@ -51,7 +51,9 @@ public class AuthController {
         ResLoginDto.UserLogin userLogin = new ResLoginDto.UserLogin(
                 currentUser.getId(),
                 currentUser.getName(),
-                currentUser.getEmail());
+                currentUser.getEmail(),
+        currentUser.getAvatar(),
+                currentUser.getPhone());
 
         res.setUserLogin(userLogin);
 
@@ -86,7 +88,9 @@ public class AuthController {
             userLogin.setId(user.getId());
             userLogin.setEmail(user.getEmail());
             userLogin.setName(user.getName());
+            userLogin.setAvatar(user.getAvatar());
             userAccount.setUser(userLogin);
+            userLogin.setPhone(user.getPhone());
         }
         return ResponseEntity.ok().body(userAccount);
     }
@@ -129,7 +133,9 @@ public class AuthController {
         ResLoginDto.UserLogin userLogin = new ResLoginDto.UserLogin(
                 currentUser.getId(),
                 currentUser.getName(),
-                currentUser.getEmail());
+                currentUser.getEmail(),
+                currentUser.getAvatar(),
+                currentUser.getPhone());
 
         res.setUserLogin(userLogin);
 

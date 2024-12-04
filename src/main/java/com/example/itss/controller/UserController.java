@@ -49,6 +49,11 @@ public class UserController {
 
     @DeleteMapping
     public ResponseEntity<ResponseDto> deleteUser(@RequestBody ResUserDto resUserDto) {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(this.userService.deleteUser(resUserDto.getEmail()));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(this.userService.deleteUser(resUserDto));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDto<ResUserDto>> getUserById(@PathVariable("id") Integer id) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.handleGetUserById(id));
     }
 }

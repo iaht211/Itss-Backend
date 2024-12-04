@@ -44,6 +44,10 @@ public class User {
 
     private String address;
 
+    private String phone;
+
+    private String avatar;
+
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss a", timezone = "GMT+7")
@@ -55,10 +59,6 @@ public class User {
     private String createdBy;
 
     private String updatedBy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id", nullable = true)
-    private School school;
 
     @PrePersist
     public void handleBeforeCreate() {

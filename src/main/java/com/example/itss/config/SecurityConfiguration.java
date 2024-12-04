@@ -3,6 +3,8 @@ package com.example.itss.config;
 import com.example.itss.util.SecurityUtils;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,10 +14,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -25,11 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
-
-    // private final SecurityUtils securityUtils;
-    // public SecurityConfiguration (SecurityUtils securityUtils) {
-    // this.securityUtils = securityUtils;
-    // }
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfiguration.class);
 
     @Value("${security.jwt.base64-secret}")
     private String jwtKey;
@@ -46,14 +41,19 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-
-                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh")
+                        .requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/account",
+                                "/",
+                                "/storage/**",
+                                "/api/v1/files")
                         .permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.decoder(jwtDecoder()))
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .addFilterBefore(new PublicEndpointAuthorizationFilter(), BearerTokenAuthenticationFilter.class)
-                .formLogin(f -> f.disable())
+//                .addFilterBefore(new PublicEndpointAuthorizationFilter(), BearerTokenAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
@@ -70,14 +70,19 @@ public class SecurityConfiguration {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
-                getSecretKey()).macAlgorithm(SecurityUtils.JWT_ALGORITHM).build();
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(getSecretKey())
+                .macAlgorithm(SecurityUtils.JWT_ALGORITHM)
+                .build();
+
         return token -> {
             try {
-                return jwtDecoder.decode(token);
+                logger.debug("Attempting to decode token: {}", token);
+                Jwt jwt = jwtDecoder.decode(token);
+                logger.debug("Successfully decoded token");
+                return jwt;
             } catch (Exception e) {
-                System.out.println(">>> JWT error: " + e.getMessage());
-                throw e;
+                logger.error("JWT decode error: {}", e.getMessage());
+                throw new JwtException("Invalid token", e);
             }
         };
     }

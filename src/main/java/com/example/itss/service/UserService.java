@@ -26,7 +26,8 @@ public class UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-    public ResponseDto<ResUserDto>  createUser(User user) throws FomatException {
+
+    public ResponseDto<ResUserDto> createUser(User user) throws FomatException {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new FomatException("Email đã tốn tại");
         }
@@ -58,6 +59,8 @@ public class UserService {
                         item.getId(),
                         item.getName(),
                         item.getEmail(),
+                        item.getAvatar(),
+                        item.getPhone(),
                         item.getAge(),
                         item.getGender(),
                         item.getAddress(),
@@ -76,27 +79,28 @@ public class UserService {
         return new ResponseDto<>(200, "Tất cả người dùng", resultPaginationDto);
     }
 
-    public ResponseDto<ResUpdateUserDto> updateUser(ResUserDto user) throws FomatException{
-        Optional<User> optional = this.userRepository.findByEmail(user.getEmail());
+    public ResponseDto<ResUpdateUserDto> updateUser(ResUserDto user) throws FomatException {
+        Optional<User> optional = this.userRepository.findById(user.getId());
         User currUser = optional.get();
-        if (null != currUser) {
+        if (currUser != null) {
             currUser.setAddress(user.getAddress());
             currUser.setGender(user.getGender());
             currUser.setAge(user.getAge());
             currUser.setName(user.getName());
+            currUser.setAvatar(user.getAvatar());
+            currUser.setPhone(user.getPhone());
 
             currUser = this.userRepository.save(currUser);
             ResUpdateUserDto updateUserDto = convertToUpdateUserDto(currUser);
             return new ResponseDto<>(200, "Tất cả người dùng", updateUserDto);
-        }
-        else {
+        } else {
             throw new FomatException("Không tồn tại người dùng");
         }
     }
 
-    public ResponseDto<Void> deleteUser(String email) throws FomatException{
-        Optional<User> optional = this.userRepository.findByEmail(email);
-        if(!optional.isPresent()) {
+    public ResponseDto<Void> deleteUser(ResUserDto resUserDto) throws FomatException {
+        Optional<User> optional = this.userRepository.findById(resUserDto.getId());
+        if (!optional.isPresent()) {
             throw new FomatException("Không tồn tại người dùng");
         }
         this.userRepository.delete(optional.get());
@@ -105,7 +109,10 @@ public class UserService {
 
     public User handleGetUserByEmail(String email) {
         Optional<User> optional = this.userRepository.findByEmail(email);
-        return optional.get();
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
     }
 
     public User handleGetUserByUsername(String email) {
@@ -113,6 +120,16 @@ public class UserService {
         if (optional.isPresent()) {
             User user = optional.get();
             return user;
+        }
+        return null;
+    }
+
+    public ResponseDto<ResUserDto> handleGetUserById(Integer id) {
+        Optional<User> optional = this.userRepository.findById(id);
+        if (optional.isPresent()) {
+            User user = optional.get();
+            ResUserDto resUserDto = this.convertToResUserDto(user);
+            return new ResponseDto<>(200, "Tất cả người dùng", resUserDto);
         }
         return null;
     }
@@ -140,6 +157,7 @@ public class UserService {
         res.setGender(user.getGender());
         res.setUpdatedAt(user.getUpdatedAt());
         res.setEmail(user.getEmail());
+        res.setPhone(user.getPhone());
         return res;
     }
 
@@ -149,6 +167,7 @@ public class UserService {
         res.setAddress(user.getAddress());
         res.setAge(user.getAge());
         res.setName(user.getName());
+        res.setAvatar(user.getAvatar());
         res.setGender(user.getGender());
         res.setCreatedAt(user.getCreatedAt());
         res.setUpdatedAt(user.getUpdatedAt());

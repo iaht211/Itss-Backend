@@ -25,7 +25,6 @@ public class SecurityUtils {
         this.jwtEncoder = jwtEncoder;
     }
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
-    public static final String AUTHORITIES_KEY = "auth";
 
     @Value("${security.jwt.access-token-validity-in-seconds}")
     private long accessTokenExpriration;
@@ -52,10 +51,13 @@ public class SecurityUtils {
     }
 
     public String createAccessToken(String email, ResLoginDto resLoginDto) {
+        ResLoginDto.UserInsideToken userToken = new ResLoginDto.UserInsideToken();
+        userToken.setId(resLoginDto.getUserLogin().getId());
+        userToken.setEmail(resLoginDto.getUserLogin().getEmail());
+        userToken.setName(resLoginDto.getUserLogin().getName());
 
         Instant now = Instant.now();
-        Instant validity;
-        validity = now.plus(this.accessTokenExpriration, ChronoUnit.SECONDS);
+        Instant validity = now.plus(this.accessTokenExpriration, ChronoUnit.SECONDS);
 
 //        List<String> listAuthority = new ArrayList<String>();
 //

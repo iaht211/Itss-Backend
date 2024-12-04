@@ -22,6 +22,8 @@ public class ResLoginDto {
         private int id;
         private String name;
         private String email;
+        private String avatar;
+        private String phone;
     }
 
     @Getter
@@ -31,5 +33,16 @@ public class ResLoginDto {
     public static class UserGetAccount {
         private UserLogin user;
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserInsideToken {
+        private long id;
+        private String email;
+        private String name;
+    }
+
 
 }
